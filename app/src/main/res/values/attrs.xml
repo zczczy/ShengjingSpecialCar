@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="MyTitleBar">
+        <attr name="mTitle" format="reference|string"/>
+        <attr name="mTitleSize" format="dimension|reference"/>
+        <attr name="mTitleTextColor" format="reference|color"/>
+
+        <attr name="mLeftText" format="reference|string"/>
+        <attr name="mLeftTextSize" format="dimension|reference"/>
+        <attr name="mLeftTextColor" format="reference|color"/>
+
+        <attr name="mRightText" format="reference|string"/>
+        <attr name="mRightTextSize" format="dimension|reference"/>
+        <attr name="mRightTextColor" format="reference|color"/>
+        <attr name="mRightButtonIcon" format="reference"/>
+        <attr name="mRightTextMarginRight" format="dimension|reference"/>
+        <attr name="mRightTextDrawable" format="reference"/>
+
+        <attr name="mNavButtonIcon" format="reference"/>
+
+        <attr name="mLogoIcon" format="reference"/>
+        <!--<attr name="mCircleLogo" format="boolean"/>-->
+
+        <attr name="mSearchViewDrwableLeft" format="reference"/>
+        <attr name="mSearchViewDrwableRight" format="reference"/>
+        <attr name="mSearchHintText" format="reference"/>
+        <attr name="mSearchHintTextColor" format="reference|color"/>
+
+        <!--<attr name="border_width" format="dimension|reference" />-->
+        <!--<attr name="border_color" format="reference|color" />-->
+    </declare-styleable>
+
+    <declare-styleable name="CircleImageView">
+        <attr name="border_width" format="dimension|reference" />
+        <attr name="border_color" format="color|reference" />
+        <attr name="border_overlay" format="boolean" />
+    </declare-styleable>
+
+
+
+
+</resources>
