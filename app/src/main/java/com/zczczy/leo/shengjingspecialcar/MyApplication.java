@@ -15,6 +15,5 @@ public class MyApplication extends Application {
     @AfterInject
     void afterInject(){
 
-//        CrashWoodpecker.fly().to(this);
     }
 }

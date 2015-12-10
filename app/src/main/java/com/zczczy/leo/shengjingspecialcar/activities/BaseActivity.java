@@ -8,9 +8,9 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.jude.swipbackhelper.SwipeBackHelper;
 import com.jude.swipbackhelper.SwipeListener;
-import com.luleo.myapplications.prefs.MyPrefs_;
-import com.luleo.myapplications.rest.MyErrorHandler;
-import com.luleo.myapplications.rest.MyRestClient;
+import com.zczczy.leo.shengjingspecialcar.prefs.MyPrefs_;
+import com.zczczy.leo.shengjingspecialcar.rest.MyErrorHandler;
+import com.zczczy.leo.shengjingspecialcar.rest.MyRestClient;
 
 import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.Bean;

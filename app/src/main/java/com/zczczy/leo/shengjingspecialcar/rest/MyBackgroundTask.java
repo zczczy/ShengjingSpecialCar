@@ -53,8 +53,8 @@ public class MyBackgroundTask {
     @Bean
     MyErrorHandler myErrorHandler;
 
-    @App
-    MyApplication myApplication;
+//    @App
+//    MyApplication myApplication;
 
 
     Cursor cursor;
