@@ -7,6 +7,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.ColorInt;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
 import android.support.v7.widget.TintManager;
@@ -14,6 +15,7 @@ import android.support.v7.widget.TintTypedArray;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -67,6 +69,8 @@ public class MyTitleBar extends RelativeLayout implements Parcelable {
 
     private OnRightClickListener onRightClickListener;
 
+    private Context context;
+
     @Override
     public int describeContents() {
         return 0;
@@ -113,7 +117,7 @@ public class MyTitleBar extends RelativeLayout implements Parcelable {
 
     public MyTitleBar(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-
+        this.context=context;
 
         final TintTypedArray a = TintTypedArray.obtainStyledAttributes(getContext(), attrs, R.styleable.MyTitleBar, defStyleAttr, 0);
 
@@ -575,6 +579,34 @@ public class MyTitleBar extends RelativeLayout implements Parcelable {
         }
         mTitleText = title;
     }
+
+    public void setCustomView(View view){
+        removeAllViews();
+        LayoutParams layoutParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+        layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+        if(mTitleTextView!=null){
+            mTitleTextView.setVisibility(View.GONE);
+        }
+        view.setLayoutParams(layoutParams);
+        addView(view);
+    }
+
+    public void setCustomView(@LayoutRes int resId){
+        View view = LayoutInflater.from(context).inflate(resId, null);
+        removeAllViews();
+        LayoutParams layoutParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
+        layoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
+        if(mTitleTextView!=null){
+            mTitleTextView.setVisibility(View.GONE);
+        }
+        view.setLayoutParams(layoutParams);
+        addView(view);
+    }
+
+
+
+
+
 
     public void setTitle(@StringRes int resId) {
         setTitle(getContext().getText(resId));

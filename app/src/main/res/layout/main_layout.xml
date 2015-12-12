@@ -7,24 +7,28 @@
     android:layout_height="match_parent"
     tools:context=".activities.MainActivity">
 
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <com.zczczy.leo.shengjingspecialcar.viewgroup.MyTitleBar
             android:id="@+id/my_title_bar"
             android:layout_width="match_parent"
             android:layout_height="58dp"
             android:background="@color/windows_color"
             android:minHeight="58dp"
-            app:mRightText="大连"
-            app:mTitleTextColor="@color/black"
-            app:mTitle="@string/app_name" />
+            app:mTitle="@string/app_name"
+            app:mTitleTextColor="@color/black" />
 
-
+        <com.amap.api.maps.MapView
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
 
     </RelativeLayout>
+
     <android.support.design.widget.NavigationView
         android:id="@+id/nvView"
         android:layout_width="wrap_content"
