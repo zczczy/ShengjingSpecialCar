@@ -1,5 +1,6 @@
 package com.zczczy.leo.shengjingspecialcar.activities;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -20,6 +21,7 @@ import com.amap.api.maps.model.Circle;
 import com.amap.api.maps.model.LatLng;
 import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
+import com.amap.api.maps.model.MyLocationStyle;
 import com.jude.swipbackhelper.SwipeBackHelper;
 import com.zczczy.leo.shengjingspecialcar.R;
 import com.zczczy.leo.shengjingspecialcar.tools.AndroidTool;
@@ -33,10 +35,10 @@ import org.androidannotations.annotations.ViewById;
  * Created by Leo on 2015/12/10.
  */
 @EActivity(R.layout.main_layout)
-public class MainActivity extends BaseActivity  implements
-        LocationSource, AMapLocationListener,AMap.OnMarkerClickListener,
-        AMap.OnInfoWindowClickListener,AMap.OnMarkerDragListener,AMap.OnMapLoadedListener,
-        AMap.InfoWindowAdapter,AMap.OnCameraChangeListener,AMap.CancelableCallback {
+public class MainActivity extends BaseActivity implements
+        LocationSource, AMapLocationListener, AMap.OnMarkerClickListener,
+        AMap.OnInfoWindowClickListener, AMap.OnMarkerDragListener, AMap.OnMapLoadedListener,
+        AMap.InfoWindowAdapter, AMap.OnCameraChangeListener, AMap.CancelableCallback {
 
     @ViewById
     MyTitleBar myTitleBar;
@@ -64,14 +66,15 @@ public class MainActivity extends BaseActivity  implements
 
     Marker marker;
 
-    LatLng latlng = new LatLng(38.859832, 121.523059);
+    // 自定义系统定位蓝点
+    MyLocationStyle myLocationStyle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.savedInstanceState=savedInstanceState;
+        this.savedInstanceState = savedInstanceState;
         /*
-		 * 设置离线地图存储目录，在下载离线地图或初始化地图设置; 使用过程中可自行设置, 若自行设置了离线地图存储的路径，
+         * 设置离线地图存储目录，在下载离线地图或初始化地图设置; 使用过程中可自行设置, 若自行设置了离线地图存储的路径，
 		 * 则需要在离线地图下载和使用地图页面都进行路径设置
 		 */
         // Demo中为了其他界面可以使用下载的离线地图，使用默认位置存储，屏蔽了自定义设置
@@ -82,6 +85,16 @@ public class MainActivity extends BaseActivity  implements
     @AfterViews
     void afterView() {
         SwipeBackHelper.getCurrentPage(this).setSwipeBackEnable(false);
+        myLocationStyle = new MyLocationStyle();
+        // 自定义定位蓝点图标
+        myLocationStyle.myLocationIcon(BitmapDescriptorFactory.
+                fromResource(R.mipmap.ic_map_location_compass));
+        // 自定义精度范围的圆形边框颜色
+        myLocationStyle.strokeColor(Color.BLACK);
+        //自定义精度范围的圆形边框宽度
+        myLocationStyle.strokeWidth(0);
+
+
         mapView.onCreate(savedInstanceState);// 必须要写
         init();
     }
@@ -94,10 +107,7 @@ public class MainActivity extends BaseActivity  implements
             aMap = mapView.getMap();
             setUpMap();
         }
-
     }
-
-
 
 
     /**
@@ -106,7 +116,9 @@ public class MainActivity extends BaseActivity  implements
     void setUpMap() {
         aMap.setLocationSource(this);// 设置定位监听
         // 设置定位的类型为定位模式 ，可以由定位、跟随或地图根据面向方向旋转几种
-        aMap.setMyLocationType(AMap.LOCATION_TYPE_LOCATE);
+        aMap.setMyLocationType(AMap.LOCATION_TYPE_LOCATE);  //只在第一次定位移动到地图中心点。
+//        aMap.setMyLocationType(AMap.LOCATION_TYPE_MAP_ROTATE); //定位、移动到地图中心点，跟踪并根据面向方向旋转地图。
+//        aMap.setMyLocationType(AMap.LOCATION_TYPE_MAP_FOLLOW); //定位、移动到地图中心点并跟随。
 
         float scale = aMap.getScalePerPixel();//一像素代表多少米
 
@@ -129,20 +141,19 @@ public class MainActivity extends BaseActivity  implements
         aMap.setOnInfoWindowClickListener(this);// 设置点击infoWindow事件监听器
         aMap.setInfoWindowAdapter(this);// 设置自定义InfoWindow样式
         aMap.setOnCameraChangeListener(this);
+        aMap.setMyLocationStyle(myLocationStyle);
 
-        // 绘制一个圆形
-//                circle = aMap.addCircle(
-//                      new CircleOptions().
-//                              center( new LatLng(aMapLocation.getLatitude(), aMapLocation.getLongitude()))
-//                        .radius(1000).strokeColor(Color.argb(50, 1, 1, 1))
-//                        .fillColor(Color.argb(50, 1, 1, 1)).strokeWidth(25));
+        aMap.setMyLocationRotateAngle(90);
+
+
     }
 
 
     @Override
     public void onLocationChanged(AMapLocation aMapLocation) {
+        Log.e("onLocationChanged", "进入onLocationChanged");
         if (mListener != null && aMapLocation != null) {
-            if ( aMapLocation.getErrorCode() == 0) {
+            if (aMapLocation.getErrorCode() == 0) {
 
 //                //定位成功回调信息，设置相关消息
 //                aMapLocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见定位类型表
@@ -166,10 +177,9 @@ public class MainActivity extends BaseActivity  implements
                 mListener.onLocationChanged(aMapLocation);// 显示系统小蓝点
 
 
-
             } else {
-                String errText = "定位失败," + aMapLocation.getErrorCode()+ ": " + aMapLocation.getErrorInfo();
-                Log.e("AmapErr",errText);
+                String errText = "定位失败," + aMapLocation.getErrorCode() + ": " + aMapLocation.getErrorInfo();
+                Log.e("AmapErr", errText);
             }
         }
     }
@@ -177,6 +187,7 @@ public class MainActivity extends BaseActivity  implements
     @Override
     public void activate(OnLocationChangedListener onLocationChangedListener) {
         mListener = onLocationChangedListener;
+        Log.e("activate", "进入activate");
         if (mlocationClient == null) {
             mlocationClient = new AMapLocationClient(this);
             mLocationOption = new AMapLocationClientOption();
@@ -204,25 +215,14 @@ public class MainActivity extends BaseActivity  implements
         }
     }
 
-    void addMarkersToMap(){
-        marker = aMap.addMarker(new MarkerOptions()
-                .position(latlng).title("成都市")
-                .snippet("成都市:30.679879, 104.064855").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
-                .draggable(true).period(50));
-    }
+    void addMarkersToMap() {
 
-
-    /**
-     * 方法必须重写
-     */
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mapView.onDestroy();
-        deactivate();
-        if(null != mlocationClient){
-            mlocationClient.onDestroy();
-        }
+        MarkerOptions markerOptions = new MarkerOptions()
+                .title("最快2分钟接驾")
+                .icon(BitmapDescriptorFactory.fromResource(R.mipmap.nova_passenger_driver_targer))
+                .draggable(true).period(50);
+        marker = aMap.addMarker(markerOptions);
+        marker.showInfoWindow();
     }
 
 
@@ -274,12 +274,14 @@ public class MainActivity extends BaseActivity  implements
      */
     @Override
     public void onMapLoaded() {
-
+        Log.e("onMapLoaded", "进入onMapLoaded");
         // 设置所有maker显示在当前可视区域地图中
 //        LatLngBounds bounds = new LatLngBounds.Builder()
 //                .include(latlng).build();
 //        aMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150));
-        aMap.animateCamera(CameraUpdateFactory.zoomTo(14),1000,this);
+        aMap.animateCamera(CameraUpdateFactory.zoomTo(14), 1000, this);
+
+//        aMap.getMapScreenMarkers().get(0).setIcon(BitmapDescriptorFactory.fromResource(R.mipmap.ic_map_location_compass));
 
     }
 
@@ -289,21 +291,23 @@ public class MainActivity extends BaseActivity  implements
 //        markerText.setText("你点击的是" + marker.getTitle());
         return false;
     }
+
     /**
-     *
      * @param cameraPosition
      * @see com.amap.api.maps.AMap.OnCameraChangeListener
      */
     @Override
     public void onCameraChange(CameraPosition cameraPosition) {
-        addMarkersToMap();// 往地图上添加marker
+        Log.e("onCammeraChange", "进入cameraPosition");
         LatLng target = cameraPosition.target;
+        if (marker == null) {
+            addMarkersToMap();
+        }
         marker.setPosition(target);
 //        aMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, this);
     }
 
     /**
-     *
      * @param cameraPosition
      * @see com.amap.api.maps.AMap.OnCameraChangeListener
      */
@@ -315,17 +319,19 @@ public class MainActivity extends BaseActivity  implements
     }
 
 
-
     /**
      * 地图动画效果终止回调方法
+     *
      * @see com.amap.api.maps.AMap.CancelableCallback
      */
     @Override
     public void onFinish() {
 
     }
+
     /**
      * 地图动画效果完成回调方法
+     *
      * @see com.amap.api.maps.AMap.CancelableCallback
      */
     @Override
@@ -347,8 +353,9 @@ public class MainActivity extends BaseActivity  implements
      */
     @Override
     public void onMarkerDrag(Marker marker) {
-        Log.e("marker",marker.getTitle());
+        Log.e("marker", marker.getTitle());
     }
+
     /**
      * 监听拖动marker结束事件回调
      */
@@ -356,7 +363,6 @@ public class MainActivity extends BaseActivity  implements
     public void onMarkerDragEnd(Marker marker) {
 
     }
-
 
 
     @Override
@@ -396,6 +402,20 @@ public class MainActivity extends BaseActivity  implements
         super.onSaveInstanceState(outState);
         mapView.onSaveInstanceState(outState);
 
+    }
+
+
+    /**
+     * 方法必须重写
+     */
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+        deactivate();
+        if (null != mlocationClient) {
+            mlocationClient.onDestroy();
+        }
     }
 
 }
