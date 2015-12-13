@@ -1,13 +1,8 @@
 package com.zczczy.leo.shengjingspecialcar.activities;
 
-import android.graphics.Point;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
-import android.view.animation.BounceInterpolator;
-import android.view.animation.Interpolator;
 
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
@@ -18,27 +13,21 @@ import com.amap.api.maps.AMapOptions;
 import com.amap.api.maps.CameraUpdateFactory;
 import com.amap.api.maps.LocationSource;
 import com.amap.api.maps.MapView;
-import com.amap.api.maps.Projection;
 import com.amap.api.maps.UiSettings;
 import com.amap.api.maps.model.BitmapDescriptorFactory;
 import com.amap.api.maps.model.CameraPosition;
 import com.amap.api.maps.model.Circle;
 import com.amap.api.maps.model.LatLng;
-import com.amap.api.maps.model.LatLngBounds;
 import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
 import com.jude.swipbackhelper.SwipeBackHelper;
 import com.zczczy.leo.shengjingspecialcar.R;
 import com.zczczy.leo.shengjingspecialcar.tools.AndroidTool;
-import com.zczczy.leo.shengjingspecialcar.tools.Constants;
 import com.zczczy.leo.shengjingspecialcar.viewgroup.MyTitleBar;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.ViewById;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * Created by Leo on 2015/12/10.
@@ -47,7 +36,7 @@ import java.util.Date;
 public class MainActivity extends BaseActivity  implements
         LocationSource, AMapLocationListener,AMap.OnMarkerClickListener,
         AMap.OnInfoWindowClickListener,AMap.OnMarkerDragListener,AMap.OnMapLoadedListener,
-        AMap.InfoWindowAdapter,AMap.OnCameraChangeListener {
+        AMap.InfoWindowAdapter,AMap.OnCameraChangeListener,AMap.CancelableCallback {
 
     @ViewById
     MyTitleBar myTitleBar;
@@ -105,27 +94,27 @@ public class MainActivity extends BaseActivity  implements
             aMap = mapView.getMap();
             setUpMap();
         }
-        setUiSettings();
 
-        aMap.setOnMarkerDragListener(this);// 设置marker可拖拽事件监听器
-        aMap.setOnMapLoadedListener(this);// 设置amap加载成功事件监听器
-        aMap.setOnMarkerClickListener(this);// 设置点击marker事件监听器
-        aMap.setOnInfoWindowClickListener(this);// 设置点击infoWindow事件监听器
-        aMap.setInfoWindowAdapter(this);// 设置自定义InfoWindow样式
-        aMap.setOnCameraChangeListener(this);
-        addMarkersToMap();// 往地图上添加marker
     }
 
+
+
+
     /**
-     * 设置地图UI
+     * 设置一些amap的属性
      */
-    void setUiSettings(){
+    void setUpMap() {
+        aMap.setLocationSource(this);// 设置定位监听
+        // 设置定位的类型为定位模式 ，可以由定位、跟随或地图根据面向方向旋转几种
+        aMap.setMyLocationType(AMap.LOCATION_TYPE_LOCATE);
+
         float scale = aMap.getScalePerPixel();//一像素代表多少米
+
         uiSettings = aMap.getUiSettings();
         uiSettings.setZoomControlsEnabled(false);//设置是否显示缩放按钮
         uiSettings.setZoomPosition(AMapOptions.ZOOM_POSITION_RIGHT_CENTER);//setZoomControlsEnabled 为false 不起作用
-        uiSettings.setMyLocationButtonEnabled(true);// 是否显示定位按钮
-        aMap.setMyLocationEnabled(true);// 是否可触发定位并显示定位层
+        uiSettings.setMyLocationButtonEnabled(true);// 是否显示定位按钮  设置默认定位按钮是否显示
+        aMap.setMyLocationEnabled(true);//  设置为true表示显示定位层并可触发定位， false表示隐藏定位层并不可触发定位，默认是false
         uiSettings.setLogoPosition(AMapOptions.LOGO_POSITION_BOTTOM_CENTER);//设置logog的位置
         uiSettings.setCompassEnabled(true);//设置指南针是否显示
         uiSettings.setScrollGesturesEnabled(true);//设置地图是否可以手势滑动
@@ -134,19 +123,12 @@ public class MainActivity extends BaseActivity  implements
         uiSettings.setRotateGesturesEnabled(true);//设置地图是否可以旋转
         uiSettings.setScaleControlsEnabled(true);//设置地图默认的比例尺是否显示
 
-    }
-
-
-    /**
-     * 设置一些amap的属性
-     */
-    void setUpMap() {
-        aMap.setLocationSource(this);// 设置定位监听
-        aMap.getUiSettings().setMyLocationButtonEnabled(true);// 设置默认定位按钮是否显示
-        aMap.setMyLocationEnabled(true);// 设置为true表示显示定位层并可触发定位，false表示隐藏定位层并不可触发定位，默认是false
-        // 设置定位的类型为定位模式 ，可以由定位、跟随或地图根据面向方向旋转几种
-        aMap.setMyLocationType(AMap.LOCATION_TYPE_LOCATE);
-
+        aMap.setOnMarkerDragListener(this);// 设置marker可拖拽事件监听器
+        aMap.setOnMapLoadedListener(this);// 设置amap加载成功事件监听器
+        aMap.setOnMarkerClickListener(this);// 设置点击marker事件监听器
+        aMap.setOnInfoWindowClickListener(this);// 设置点击infoWindow事件监听器
+        aMap.setInfoWindowAdapter(this);// 设置自定义InfoWindow样式
+        aMap.setOnCameraChangeListener(this);
 
         // 绘制一个圆形
 //                circle = aMap.addCircle(
@@ -161,27 +143,28 @@ public class MainActivity extends BaseActivity  implements
     public void onLocationChanged(AMapLocation aMapLocation) {
         if (mListener != null && aMapLocation != null) {
             if ( aMapLocation.getErrorCode() == 0) {
-                aMap.moveCamera(CameraUpdateFactory.zoomTo(14));
-                //定位成功回调信息，设置相关消息
-                aMapLocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见定位类型表
-                aMapLocation.getLatitude();//获取经度
-                aMapLocation.getLongitude();//获取纬度
-                aMapLocation.getAccuracy();//获取精度信息
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                Date date = new Date(aMapLocation.getTime());
-                df.format(date);//定位时间
-                aMapLocation.getAddress();//地址，如果option中设置isNeedAddress为false，则没有此结果
-                aMapLocation.getCountry();//国家信息
-                aMapLocation.getProvince();//省信息
-                aMapLocation.getCity();//城市信息
-                aMapLocation.getDistrict();//城区信息
-                aMapLocation.getRoad();//街道信息
-                aMapLocation.getCityCode();//城市编码
-                aMapLocation.getAdCode();//地区编码
+
+//                //定位成功回调信息，设置相关消息
+//                aMapLocation.getLocationType();//获取当前定位结果来源，如网络定位结果，详见定位类型表
+//                aMapLocation.getLatitude();//获取经度
+//                aMapLocation.getLongitude();//获取纬度
+//                aMapLocation.getAccuracy();//获取精度信息
+//                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//                Date date = new Date(aMapLocation.getTime());
+//                df.format(date);//定位时间
+//                aMapLocation.getAddress();//地址，如果option中设置isNeedAddress为false，则没有此结果
+//                aMapLocation.getCountry();//国家信息
+//                aMapLocation.getProvince();//省信息
+//                aMapLocation.getCity();//城市信息
+//                aMapLocation.getDistrict();//城区信息
+//                aMapLocation.getRoad();//街道信息
+//                aMapLocation.getCityCode();//城市编码
+//                aMapLocation.getAdCode();//地区编码
+//                Log.e("经度", aMapLocation.getLatitude()+"");
+//                Log.e("纬度", aMapLocation.getLongitude()+"");
+
                 mListener.onLocationChanged(aMapLocation);// 显示系统小蓝点
 
-                Log.e("经度", aMapLocation.getLatitude()+"");
-                Log.e("纬度", aMapLocation.getLongitude()+"");
 
 
             } else {
@@ -211,7 +194,6 @@ public class MainActivity extends BaseActivity  implements
             //设置是否允许模拟位置,默认为false，不允许模拟位置
             mLocationOption.setMockEnable(false);
 
-
             //设置定位参数
             mlocationClient.setLocationOption(mLocationOption);
             // 此方法为每隔固定时间会发起一次定位请求，为了减少电量消耗或网络流量消耗，
@@ -223,7 +205,6 @@ public class MainActivity extends BaseActivity  implements
     }
 
     void addMarkersToMap(){
-
         marker = aMap.addMarker(new MarkerOptions()
                 .position(latlng).title("成都市")
                 .snippet("成都市:30.679879, 104.064855").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))
@@ -295,52 +276,61 @@ public class MainActivity extends BaseActivity  implements
     public void onMapLoaded() {
 
         // 设置所有maker显示在当前可视区域地图中
-        LatLngBounds bounds = new LatLngBounds.Builder()
-                .include(latlng).build();
-        aMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150));
+//        LatLngBounds bounds = new LatLngBounds.Builder()
+//                .include(latlng).build();
+//        aMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, 150));
+        aMap.animateCamera(CameraUpdateFactory.zoomTo(14),1000,this);
 
     }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        if (marker.equals(marker2)) {
-            if (aMap != null) {
-                jumpPoint(marker);
-            }
-        }
+
 //        markerText.setText("你点击的是" + marker.getTitle());
         return false;
     }
+    /**
+     *
+     * @param cameraPosition
+     * @see com.amap.api.maps.AMap.OnCameraChangeListener
+     */
+    @Override
+    public void onCameraChange(CameraPosition cameraPosition) {
+        addMarkersToMap();// 往地图上添加marker
+        LatLng target = cameraPosition.target;
+        marker.setPosition(target);
+//        aMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition), 1000, this);
+    }
 
     /**
-     * marker点击时跳动一下
+     *
+     * @param cameraPosition
+     * @see com.amap.api.maps.AMap.OnCameraChangeListener
      */
-    public void jumpPoint(final Marker marker) {
-        final Handler handler = new Handler();
-        final long start = SystemClock.uptimeMillis();
-        Projection proj = aMap.getProjection();
-        Point startPoint = proj.toScreenLocation(Constants.XIAN);
-        startPoint.offset(0, -100);
-        final LatLng startLatLng = proj.fromScreenLocation(startPoint);
-        final long duration = 1500;
+    @Override
+    public void onCameraChangeFinish(CameraPosition cameraPosition) {
+//        if (aMap != null) {
+//            jumpPoint(marker);
+//        }
+    }
 
-        final Interpolator interpolator = new BounceInterpolator();
-        handler.post(new Runnable() {
-            @Override
-            public void run() {
-                long elapsed = SystemClock.uptimeMillis() - start;
-                float t = interpolator.getInterpolation((float) elapsed
-                        / duration);
-                double lng = t * Constants.XIAN.longitude + (1 - t)
-                        * startLatLng.longitude;
-                double lat = t * Constants.XIAN.latitude + (1 - t)
-                        * startLatLng.latitude;
-                marker.setPosition(new LatLng(lat, lng));
-                if (t < 1.0) {
-                    handler.postDelayed(this, 16);
-                }
-            }
-        });
+
+
+    /**
+     * 地图动画效果终止回调方法
+     * @see com.amap.api.maps.AMap.CancelableCallback
+     */
+    @Override
+    public void onFinish() {
+
+    }
+    /**
+     * 地图动画效果完成回调方法
+     * @see com.amap.api.maps.AMap.CancelableCallback
+     */
+    @Override
+    public void onCancel() {
+
     }
 
 
@@ -357,7 +347,7 @@ public class MainActivity extends BaseActivity  implements
      */
     @Override
     public void onMarkerDrag(Marker marker) {
-
+        Log.e("marker",marker.getTitle());
     }
     /**
      * 监听拖动marker结束事件回调
@@ -408,14 +398,4 @@ public class MainActivity extends BaseActivity  implements
 
     }
 
-    @Override
-    public void onCameraChange(CameraPosition cameraPosition) {
-        LatLng target = cameraPosition.target;
-        marker.setPosition(target);
-    }
-
-    @Override
-    public void onCameraChangeFinish(CameraPosition cameraPosition) {
-
-    }
 }
