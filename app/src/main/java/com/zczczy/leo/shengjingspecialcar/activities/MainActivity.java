@@ -29,7 +29,11 @@ import com.zczczy.leo.shengjingspecialcar.viewgroup.MyTitleBar;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Leo on 2015/12/10.
@@ -107,6 +111,7 @@ public class MainActivity extends BaseActivity implements
             aMap = mapView.getMap();
             setUpMap();
         }
+        addCar();
     }
 
 
@@ -145,8 +150,29 @@ public class MainActivity extends BaseActivity implements
 
         aMap.setMyLocationRotateAngle(90);
 
+    }
+
+
+    @UiThread
+    void addCar(){
+
+        ArrayList<MarkerOptions> markerOptionsList = new ArrayList<>();
+
+        for(int i=0;i<10;i++){
+            MarkerOptions markerOptions = new MarkerOptions();
+
+            markerOptions.icon(BitmapDescriptorFactory.fromResource(R.mipmap.car_bearing));
+            //38.854736  121.525636
+            markerOptions.position(new LatLng(38.854736+(i+1)*0.001,121.525636+(i+1)*0.005));
+
+            markerOptionsList.add(markerOptions);
+
+        }
+
+        aMap.addMarkers(markerOptionsList,false);
 
     }
+
 
 
     @Override
@@ -171,8 +197,8 @@ public class MainActivity extends BaseActivity implements
 //                aMapLocation.getRoad();//街道信息
 //                aMapLocation.getCityCode();//城市编码
 //                aMapLocation.getAdCode();//地区编码
-//                Log.e("经度", aMapLocation.getLatitude()+"");
-//                Log.e("纬度", aMapLocation.getLongitude()+"");
+                Log.e("经度", aMapLocation.getLatitude()+"");
+                Log.e("纬度", aMapLocation.getLongitude()+"");
 
                 mListener.onLocationChanged(aMapLocation);// 显示系统小蓝点
 
